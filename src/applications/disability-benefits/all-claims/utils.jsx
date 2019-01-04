@@ -444,6 +444,7 @@ export function transform(formConfig, form) {
     delete clonedData.powDisabilities;
   }
 
+  // 4142 transform
   if (clonedData.providerFacility) {
     clonedData.form4142 = {
       ...(clonedData.limitedConsent && {
@@ -460,50 +461,53 @@ export function transform(formConfig, form) {
     delete clonedData.providerFacility;
   }
 
-  const incidentKeys = getFlatIncidentKeys();
+  // 781 transform
+  if (!environment.isProduction()) {
+    const incidentKeys = getFlatIncidentKeys();
 
-  const incidents = incidentKeys
-    .filter(incidentKey => clonedData[incidentKey])
-    .map(incidentKey => ({
-      ...clonedData[incidentKey],
-      personalAssault: incidentKey.includes('secondary'),
-      incidentLocation: concatIncidentLocationString(
-        clonedData[incidentKey].incidentLocation,
-      ),
-    }));
+    const incidents = incidentKeys
+      .filter(incidentKey => clonedData[incidentKey])
+      .map(incidentKey => ({
+        ...clonedData[incidentKey],
+        personalAssault: incidentKey.includes('secondary'),
+        incidentLocation: concatIncidentLocationString(
+          clonedData[incidentKey].incidentLocation,
+        ),
+      }));
 
-  incidentKeys.forEach(incidentKey => {
-    delete clonedData[incidentKey];
-  });
+    incidentKeys.forEach(incidentKey => {
+      delete clonedData[incidentKey];
+    });
 
-  if (incidents.length > 0) {
-    clonedData.form0781 = {
-      incidents,
-      remarks: clonedData.additionalRemarks781,
-      additionalIncidentText: clonedData.additionalIncidentText,
-      additionalSecondaryIncidentText:
-        clonedData.additionalSecondaryIncidentText,
-      otherInformation: [
-        ...getPtsdChangeText(clonedData.physicalChanges),
-        _.get('physicalChanges.otherExplanation', clonedData, ''),
-        ...getPtsdChangeText(clonedData.socialBehaviorChanges),
-        _.get('socialBehaviorChanges.otherExplanation', clonedData, ''),
-        ...getPtsdChangeText(clonedData.mentalChanges),
-        _.get('mentalChanges.otherExplanation', clonedData, ''),
-        ...getPtsdChangeText(clonedData.workBehaviorChanges),
-        _.get('workBehaviorChanges.otherExplanation', clonedData, ''),
-        _.get('additionalChanges', clonedData, ''),
-      ].filter(info => info.length > 0),
-    };
+    if (incidents.length > 0) {
+      clonedData.form0781 = {
+        incidents,
+        remarks: clonedData.additionalRemarks781,
+        additionalIncidentText: clonedData.additionalIncidentText,
+        additionalSecondaryIncidentText:
+          clonedData.additionalSecondaryIncidentText,
+        otherInformation: [
+          ...getPtsdChangeText(clonedData.physicalChanges),
+          _.get('physicalChanges.otherExplanation', clonedData, ''),
+          ...getPtsdChangeText(clonedData.socialBehaviorChanges),
+          _.get('socialBehaviorChanges.otherExplanation', clonedData, ''),
+          ...getPtsdChangeText(clonedData.mentalChanges),
+          _.get('mentalChanges.otherExplanation', clonedData, ''),
+          ...getPtsdChangeText(clonedData.workBehaviorChanges),
+          _.get('workBehaviorChanges.otherExplanation', clonedData, ''),
+          _.get('additionalChanges', clonedData, ''),
+        ].filter(info => info.length > 0),
+      };
 
-    delete clonedData.physicalChanges;
-    delete clonedData.socialBehaviorChanges;
-    delete clonedData.mentalChanges;
-    delete clonedData.workBehaviorChanges;
-    delete clonedData.additionalChanges;
-    delete clonedData.additionalRemarks781;
-    delete clonedData.additionalIncidentText;
-    delete clonedData.additionalSecondaryIncidentText;
+      delete clonedData.physicalChanges;
+      delete clonedData.socialBehaviorChanges;
+      delete clonedData.mentalChanges;
+      delete clonedData.workBehaviorChanges;
+      delete clonedData.additionalChanges;
+      delete clonedData.additionalRemarks781;
+      delete clonedData.additionalIncidentText;
+      delete clonedData.additionalSecondaryIncidentText;
+    }
   }
 
   return JSON.stringify({ form526: clonedData });
